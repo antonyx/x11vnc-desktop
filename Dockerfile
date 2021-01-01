@@ -7,7 +7,7 @@
 # Authors:
 # Xiangmin Jiao <xmjiao@gmail.com>
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 LABEL maintainer Xiangmin Jiao <xmjiao@gmail.com>
 
 ARG DOCKER_LANG=en_US
@@ -32,9 +32,11 @@ RUN apt-get update && \
     locale-gen $LANG && \
     dpkg-reconfigure -f noninteractive locales && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        dmidecode \
         curl \
         less \
         vim \
+        nano \
         psmisc \
         runit \
         apt-transport-https ca-certificates \
@@ -42,7 +44,7 @@ RUN apt-get update && \
         man \
         sudo \
         rsync \
-        bsdtar \
+        tar \
         net-tools \
         gpg-agent \
         inetutils-ping \
@@ -70,14 +72,14 @@ RUN apt-get update && \
         gtk2-engines-pixbuf \
         gtk2-engines-murrine \
         libcanberra-gtk-module libcanberra-gtk3-module \
-        ttf-ubuntu-font-family \
+        ttf-ubuntu-font-family fonts-emojione fonts-noto-color-emoji \
         xfonts-base xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic \
         libopengl0 mesa-utils libglu1-mesa libgl1-mesa-dri libjpeg8 libjpeg62 \
         xauth \
         x11vnc \
-        \
-        firefox \
-        xpdf && \
+	sqlitebrowser \
+	evince \
+        firefox && \
     chmod 755 /usr/local/share/zsh/site-functions && \
     apt-get -y autoremove && \
     ssh-keygen -A && \
@@ -100,7 +102,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     pip2 install -U https://github.com/novnc/websockify/archive/60acf3c.tar.gz && \
     mkdir /usr/local/noVNC && \
     curl -s -L https://github.com/x11vnc/noVNC/archive/master.tar.gz | \
-         bsdtar zxf - -C /usr/local/noVNC --strip-components 1 && \
+         tar zxf - -C /usr/local/noVNC --strip-components 1 && \
     rm -rf /tmp/* /var/tmp/*
 
 # Install x11vnc from source
@@ -113,7 +115,7 @@ RUN apt-get update && \
     \
     mkdir -p /tmp/x11vnc-0.9.14 && \
     curl -s -L http://x11vnc.sourceforge.net/dev/x11vnc-0.9.14-dev.tar.gz | \
-        bsdtar zxf - -C /tmp/x11vnc-0.9.14 --strip-components 1 && \
+        tar zxf - -C /tmp/x11vnc-0.9.14 --strip-components 1 && \
     cd /tmp/x11vnc-0.9.14 && \
     ./configure --prefix=/usr/local CFLAGS='-O2 -fno-stack-protector -Wall' && \
     make && \
@@ -122,6 +124,19 @@ RUN apt-get update && \
     apt-get -y remove libxtst-dev libssl-dev libjpeg-dev && \
     apt-get -y autoremove && \
     ldconfig && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install Chrome
+RUN apt-get update && \
+    apt-get install -y fonts-liberation libnspr4 libnss3 wget xdg-utils && \
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/chrome.deb && \
+    dpkg -i /tmp/chrome.deb && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Install nodejs, nvm?
+RUN curl -sL https://deb.nodesource.com/setup_12.x -o /tmp/nodesource_setup.sh && \
+    chmod +x /tmp/nodesource_setup.sh && bash /tmp/nodesource_setup.sh && \
+    apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ########################################################
